@@ -31,6 +31,12 @@ http://localhost:8000
 https://<你的 GitHub 用户名>.github.io/<仓库名>/
 ```
 
+本项目当前已部署到：
+
+```text
+https://maxxxxxli.github.io/NormCase-TARRAG/
+```
+
 ## 网页功能
 
 - `法律问答`：支持快速找法、NormCase-TARRAG 低空经济合规问答、合规摘要和报告复制。
