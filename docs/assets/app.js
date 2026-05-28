@@ -198,10 +198,11 @@ const state = {
   sourceArticles: new Map(),
   taskByCaseId: new Map(),
   searchMode: "quick",
-  activeView: "qa",
+  activeView: "home",
   selectedSourceId: "",
   selectedCaseId: "",
   lastReportText: "",
+  modelStatus: "checking",
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -221,6 +222,7 @@ async function initApp() {
   renderSourceList();
   renderCaseList();
   clearLoading();
+  checkModelService();
   hydrateIcons();
 }
 
@@ -284,6 +286,38 @@ function bindStaticEvents() {
   });
 
   document.body.addEventListener("click", handleDelegatedClick);
+}
+
+async function checkModelService() {
+  const statusText = byId("model-status-text");
+  const statusDetail = byId("model-status-detail");
+  const statusDot = byId("model-status-dot");
+  if (!statusText || !statusDetail || !statusDot) return;
+
+  if (!hasHardCodedApiKey()) {
+    state.modelStatus = "offline";
+    statusDot.className = "status-dot warning";
+    statusText.textContent = "大模型未接入";
+    statusDetail.textContent = "当前仍可使用本地法规证据问答；填入 API Key 后将自动调用 deepseekv4pro。";
+    return;
+  }
+
+  state.modelStatus = "checking";
+  statusDot.className = "status-dot checking";
+  statusText.textContent = "正在检查 deepseekv4pro";
+  statusDetail.textContent = "正在请求模型服务，确认在线问答是否可用。";
+  try {
+    await callModelHealthCheck();
+    state.modelStatus = "online";
+    statusDot.className = "status-dot online";
+    statusText.textContent = "大模型服务正常";
+    statusDetail.textContent = "deepseekv4pro 已连通，法律问答将使用法规证据 + 在线模型生成回答。";
+  } catch (error) {
+    state.modelStatus = "error";
+    statusDot.className = "status-dot warning";
+    statusText.textContent = "模型服务暂不可用";
+    statusDetail.textContent = `当前将回退到本地证据问答。错误：${String(error.message || error).slice(0, 120)}`;
+  }
 }
 
 async function loadData() {
@@ -1153,6 +1187,34 @@ async function callChatApi(question, trace, hits, cells, resolve) {
   return data?.choices?.[0]?.message?.content || "";
 }
 
+async function callModelHealthCheck() {
+  const baseUrl = HARD_CODED_API.baseUrl.replace(/\/+$/, "");
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${HARD_CODED_API.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: HARD_CODED_API.model,
+      messages: [
+        { role: "system", content: "你是服务健康检查助手。只回复 OK。" },
+        { role: "user", content: "OK" },
+      ],
+      temperature: 0,
+      max_tokens: 8,
+    }),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text.slice(0, 160) || `${response.status} ${response.statusText}`);
+  }
+  const data = await response.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error("模型没有返回内容");
+  return content;
+}
+
 function hasHardCodedApiKey() {
   const key = HARD_CODED_API.apiKey.trim();
   return Boolean(key && key !== "your_api_key_here" && key !== "PASTE_YOUR_API_KEY_HERE");
@@ -1496,6 +1558,21 @@ function openReportDrawer() {
 }
 
 function handleDelegatedClick(event) {
+  const startTarget = event.target.closest("[data-start-view]");
+  if (startTarget) {
+    switchView(startTarget.dataset.startView);
+    return;
+  }
+
+  const homeQuestion = event.target.closest("[data-home-question]");
+  if (homeQuestion) {
+    switchView("qa");
+    setSearchMode("deep");
+    byId("question-input").value = homeQuestion.dataset.homeQuestion;
+    handleSearch();
+    return;
+  }
+
   const scenario = event.target.closest("[data-scenario-question]");
   if (scenario) {
     byId("question-input").value = scenario.dataset.scenarioQuestion;
@@ -1554,6 +1631,7 @@ function switchView(view) {
     section.classList.toggle("is-active", section.id === `view-${view}`);
   });
   const titles = {
+    home: "低空经济法律合规助手",
     qa: "法律问答",
     library: "法规库",
     cases: "案例研判",

@@ -6,7 +6,7 @@
     <title>NormCase-TARRAG 低空经济法规检索与问答</title>
     <meta
       name="description"
-      content="低空经济法规库、快速找法、NormCase-TARRAG 法律问答与案例责任研判。"
+      content="低空经济法律合规助手：输入业务场景，获得合规结论、法规依据、责任边界和核验清单。"
     />
     <link rel="stylesheet" href="assets/styles.css" />
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
@@ -24,7 +24,11 @@
         </div>
 
         <nav class="main-nav" aria-label="主导航">
-          <button class="nav-button is-active" data-view="qa" type="button">
+          <button class="nav-button is-active" data-view="home" type="button">
+            <i data-lucide="home"></i>
+            <span>开始</span>
+          </button>
+          <button class="nav-button" data-view="qa" type="button">
             <i data-lucide="search"></i>
             <span>法律问答</span>
           </button>
@@ -58,7 +62,7 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">NormCase-TARRAG</p>
-            <h1 id="view-title">法律问答</h1>
+            <h1 id="view-title">低空经济法律合规助手</h1>
           </div>
           <div class="topbar-actions">
             <button class="icon-button" id="refresh-data" type="button" title="重新加载数据" aria-label="重新加载数据">
@@ -67,7 +71,100 @@
           </div>
         </header>
 
-        <section class="view is-active" id="view-qa" aria-labelledby="view-title">
+        <section class="view is-active" id="view-home" aria-labelledby="view-title">
+          <div class="home-layout">
+            <section class="home-hero">
+              <div class="home-copy">
+                <p class="eyebrow">输入场景，得到结论、依据和下一步</p>
+                <h2>低空经济合规问答</h2>
+                <p>
+                  面向无人机配送、巡检采集、低空平台、eVTOL 文旅、植保作业、保险理赔和责任争议。
+                  系统会先检索法规证据，再按 NormCase-TARRAG 方法输出合规结论、引用依据和核验清单。
+                </p>
+                <div class="home-actions">
+                  <button class="primary-button" type="button" data-start-view="qa">
+                    <i data-lucide="message-square-text"></i>
+                    <span>开始法律问答</span>
+                  </button>
+                  <button class="secondary-button" type="button" data-start-view="library">
+                    <i data-lucide="library-big"></i>
+                    <span>浏览法规库</span>
+                  </button>
+                </div>
+              </div>
+              <div class="home-status-card" id="model-status-card">
+                <div class="status-top">
+                  <span class="status-dot" id="model-status-dot"></span>
+                  <strong id="model-status-text">正在检查模型服务</strong>
+                </div>
+                <p id="model-status-detail">加载语料后将检查 deepseekv4pro 是否可用。</p>
+              </div>
+            </section>
+
+            <section class="how-to-panel">
+              <div class="pane-head">
+                <div>
+                  <p class="eyebrow">核心用法</p>
+                  <h2>三步使用</h2>
+                </div>
+              </div>
+              <div class="step-grid">
+                <div class="step-card">
+                  <span>1</span>
+                  <strong>选择功能</strong>
+                  <p>问合规问题、查法规原文，或查看案例责任研判。</p>
+                </div>
+                <div class="step-card">
+                  <span>2</span>
+                  <strong>输入业务场景</strong>
+                  <p>写清地点、主体、航空器、业务活动、数据活动和争议事实。</p>
+                </div>
+                <div class="step-card">
+                  <span>3</span>
+                  <strong>核验证据</strong>
+                  <p>查看结论、法规引用、责任边界、下一步核验事项，并复制报告。</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="feature-grid">
+              <button class="feature-card primary-feature" type="button" data-start-view="qa">
+                <i data-lucide="message-square-text"></i>
+                <span>最常用</span>
+                <strong>法律问答</strong>
+                <p>输入“深圳无人机配送试点要做哪些合规准备？”这类问题，获得结构化回答和证据引用。</p>
+              </button>
+              <button class="feature-card" type="button" data-start-view="library">
+                <i data-lucide="book-open-check"></i>
+                <span>查依据</span>
+                <strong>法规库</strong>
+                <p>按法规来源浏览 93 项低空经济相关规则，直接查看条文和原始链接。</p>
+              </button>
+              <button class="feature-card" type="button" data-start-view="cases">
+                <i data-lucide="scale"></i>
+                <span>看风险</span>
+                <strong>案例研判</strong>
+                <p>从黑飞、飞控破解、民事侵权、保险理赔等案例理解责任主体和法律后果。</p>
+              </button>
+            </section>
+
+            <section class="home-examples">
+              <div class="pane-head">
+                <div>
+                  <p class="eyebrow">示例问题</p>
+                  <h2>可以这样问</h2>
+                </div>
+              </div>
+              <div class="home-question-list">
+                <button type="button" data-home-question="深圳做无人机城市配送试点，需要从哪些方面做合规准备？">深圳做无人机城市配送试点，需要从哪些方面做合规准备？</button>
+                <button type="button" data-home-question="低空飞行服务平台处理飞行轨迹、视频和个人信息时，需要注意哪些数据合规要求？">低空平台处理轨迹、视频和个人信息，需要注意哪些数据合规要求？</button>
+                <button type="button" data-home-question="无人机在机场周边执行巡检任务，能否起飞以及需要核验哪些空域和审批事项？">无人机在机场周边巡检，能否起飞？需要核验什么？</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-qa" aria-labelledby="view-title">
           <div class="qa-layout">
             <section class="workbench-pane">
               <div class="toolbar-row">
