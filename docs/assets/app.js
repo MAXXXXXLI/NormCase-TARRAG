@@ -1168,7 +1168,7 @@ async function callChatApi(question, trace, hits, cells, resolve) {
       { role: "user", content: buildApiUserPrompt(question, trace, hits, cells, resolve) },
     ],
     temperature: 0.1,
-    max_tokens: 2500,
+    max_tokens: 1500,
   };
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -1227,11 +1227,13 @@ function buildApiUserPrompt(question, trace, hits, cells, resolve) {
 Resolve 规则：${resolve.rules_applied.join(", ")}
 Resolve 警告：${resolve.warnings.join("；")}
 
+请输出精炼但完整的回答，控制在 900-1300 字。优先给结论、依据、风险和核验清单，不要展开与问题无关的背景。
+
 Evidence matrix:
 ${matrixToMarkdown(cells)}
 
 证据：
-${formatEvidence(hits)}`;
+${formatEvidence(hits.slice(0, 10))}`;
 }
 
 function matrixToMarkdown(cells) {
@@ -1251,7 +1253,9 @@ function formatEvidence(hits) {
   return hits
     .map((hit) => {
       const doc = hit.doc;
-      return `[${doc.article_id}] ${doc.title_zh}｜${doc.legal_level}｜${doc.jurisdiction}｜${doc.validity}｜${doc.article_no}｜norm=${(doc.norm_types || []).join(",")}\n${doc.text}`;
+      const text = String(doc.text || "");
+      const clippedText = text.length > 900 ? `${text.slice(0, 900)}...` : text;
+      return `[${doc.article_id}] ${doc.title_zh}｜${doc.legal_level}｜${doc.jurisdiction}｜${doc.validity}｜${doc.article_no}｜norm=${(doc.norm_types || []).join(",")}\n${clippedText}`;
     })
     .join("\n\n");
 }
