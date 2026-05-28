@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NormCase-TARRAG 低空经济法规检索与问答</title>
+    <meta
+      name="description"
+      content="低空经济法规库、快速找法、NormCase-TARRAG 法律问答与案例责任研判。"
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+    <script src="assets/app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">N</div>
+          <div>
+            <div class="brand-name">NormCase-TARRAG</div>
+            <div class="brand-subtitle">低空经济合规工作台</div>
+          </div>
+        </div>
+
+        <nav class="main-nav" aria-label="主导航">
+          <button class="nav-button is-active" data-view="qa" type="button">
+            <i data-lucide="search"></i>
+            <span>法律问答</span>
+          </button>
+          <button class="nav-button" data-view="library" type="button">
+            <i data-lucide="library-big"></i>
+            <span>法规库</span>
+          </button>
+          <button class="nav-button" data-view="cases" type="button">
+            <i data-lucide="scale"></i>
+            <span>案例研判</span>
+          </button>
+        </nav>
+
+        <div class="stat-stack" id="side-stats" aria-live="polite">
+          <div class="side-stat">
+            <span>法规来源</span>
+            <strong>--</strong>
+          </div>
+          <div class="side-stat">
+            <span>条文切片</span>
+            <strong>--</strong>
+          </div>
+          <div class="side-stat">
+            <span>责任案例</span>
+            <strong>--</strong>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">NormCase-TARRAG</p>
+            <h1 id="view-title">法律问答</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="icon-button" id="refresh-data" type="button" title="重新加载数据" aria-label="重新加载数据">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+          </div>
+        </header>
+
+        <section class="view is-active" id="view-qa" aria-labelledby="view-title">
+          <div class="qa-layout">
+            <section class="workbench-pane">
+              <div class="toolbar-row">
+                <div class="segmented-control" role="tablist" aria-label="问答模式">
+                  <button class="segment is-active" data-search-mode="quick" type="button">快速找法</button>
+                  <button class="segment" data-search-mode="deep" type="button">法律问答</button>
+                </div>
+              </div>
+
+              <label class="field-label" for="question-input">低空经济合规问题</label>
+              <textarea
+                id="question-input"
+                rows="7"
+                placeholder="例如：深圳做无人机城市配送试点，需要从哪些方面做合规准备？"
+              ></textarea>
+
+              <div class="scenario-grid" id="scenario-grid"></div>
+
+              <div class="filter-grid">
+                <label>
+                  <span>法源层级</span>
+                  <select id="filter-level">
+                    <option value="">全部</option>
+                  </select>
+                </label>
+                <label>
+                  <span>地域</span>
+                  <select id="filter-jurisdiction">
+                    <option value="">全部</option>
+                  </select>
+                </label>
+                <label>
+                  <span>规范类型</span>
+                  <select id="filter-norm">
+                    <option value="">全部</option>
+                    <option value="authorization">授权</option>
+                    <option value="obligation">义务</option>
+                    <option value="prohibition">禁止</option>
+                    <option value="responsibility">责任</option>
+                    <option value="exception">例外</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="action-row">
+                <button class="primary-button" id="run-search" type="button">
+                  <i data-lucide="search-check"></i>
+                  <span>开始找法</span>
+                </button>
+                <button class="secondary-button" id="clear-question" type="button">
+                  <i data-lucide="eraser"></i>
+                  <span>清空</span>
+                </button>
+              </div>
+
+              <div class="trace-panel" id="trace-panel"></div>
+            </section>
+
+            <section class="results-pane">
+              <div class="pane-head">
+                <div>
+                  <p class="eyebrow">Answer & Evidence</p>
+                  <h2 id="results-title">合规回答</h2>
+                </div>
+                <div class="result-tools">
+                  <button class="secondary-button is-hidden" id="copy-report" type="button">
+                    <i data-lucide="copy"></i>
+                    <span>复制报告</span>
+                  </button>
+                  <div class="result-count" id="result-count">待检索</div>
+                </div>
+              </div>
+              <div id="insight-output" class="insight-output"></div>
+              <div id="answer-output" class="answer-output empty-state">
+                <i data-lucide="scan-search"></i>
+                <p>输入低空经济合规问题、关键词或案例事实后开始。</p>
+              </div>
+              <div class="result-list" id="result-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-library">
+          <div class="library-layout">
+            <section class="source-pane">
+              <div class="pane-head">
+                <div>
+                  <p class="eyebrow">Sources</p>
+                  <h2>法规来源</h2>
+                </div>
+              </div>
+              <div class="inline-search">
+                <i data-lucide="search"></i>
+                <input id="source-search" type="search" placeholder="搜索法规名称、机关、地域" />
+              </div>
+              <div class="source-list" id="source-list"></div>
+            </section>
+            <section class="document-pane">
+              <div id="source-detail" class="source-detail empty-state">
+                <i data-lucide="file-stack"></i>
+                <p>选择一个法规来源浏览全部条文。</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="view-cases">
+          <div class="cases-layout">
+            <section class="case-list-pane">
+              <div class="pane-head">
+                <div>
+                  <p class="eyebrow">NormCase</p>
+                  <h2>责任案例</h2>
+                </div>
+              </div>
+              <div class="case-list" id="case-list"></div>
+            </section>
+            <section class="case-detail-pane">
+              <div id="case-detail" class="case-detail empty-state">
+                <i data-lucide="gavel"></i>
+                <p>选择案例，或把案例问题送入法律问答。</p>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+
+      <aside class="article-drawer" id="article-drawer" aria-live="polite"></aside>
+    </div>
+  </body>
+</html>

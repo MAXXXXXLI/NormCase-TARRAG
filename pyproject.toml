@@ -1,0 +1,5 @@
+[project]
+name = "normcase-tarrag"
+version = "1.0.0"
+description = "NormCase-TARRAG project for low-altitude legal QA and case responsibility prediction"
+requires-python = ">=3.9"

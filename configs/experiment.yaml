@@ -1,0 +1,44 @@
+corpus_path: data/processed/corpus.jsonl
+source_vocab_path: configs/source_id_vocab_full.json
+eval_path: data/eval/xl/lowaltbench_xl_1200.jsonl
+sample_corpus_path: data/sample_corpus.jsonl
+sample_eval_path: data/eval/sample_tasks.jsonl
+output_dir: outputs
+retrieval:
+  top_k: 12
+  prefetch_k: 50
+  bm25_k1: 1.5
+  bm25_b: 0.75
+  ngram_min: 2
+  ngram_max: 4
+siliconflow:
+  base_url: https://api.siliconflow.cn/v1
+  chat_model: Qwen/Qwen3-8B
+  judge_model: Qwen/Qwen3-32B
+  embedding_model: BAAI/bge-m3
+  rerank_model: BAAI/bge-reranker-v2-m3
+experiment:
+  modes: [bm25, multiquery, trace_align, tarrag]
+  metrics: [recall_at_5, recall_at_10, mrr_at_10, facet_coverage, norm_type_coverage, conflict_evidence_recall, workflow_step_coverage]
+legal_norm_logic:
+  norm_facets:
+    - norm_authorization
+    - norm_obligation
+    - norm_prohibition
+    - norm_responsibility
+    - norm_exception
+    - hierarchy_conflict
+    - legal_reasoning
+  review_order:
+    - confirm_applicable_facts
+    - retrieve_authorization_obligation_prohibition_responsibility_exception
+    - check_exception_rules
+    - align_legal_level_jurisdiction_role_validity
+    - resolve_real_conflicts
+    - apply_deductive_subsumption
+  conflict_rules:
+    - upper_law_over_lower_law
+    - special_rule_over_general_rule
+    - newer_rule_over_older_rule
+    - local_rule_as_territorial_execution_not_replacement
+    - standards_as_technical_implementation_unless_mandatory
