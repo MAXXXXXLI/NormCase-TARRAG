@@ -182,7 +182,7 @@ const SYSTEM_PROMPT = `你是低空经济合规法律问答助手，只回答低
 
 const HARD_CODED_API = {
   baseUrl: "https://api.siliconflow.cn/v1",
-  model: "deepseek-ai/DeepSeek-V4-Flash",
+  model: "THUDM/GLM-4-9B-0414",
   apiKey: "sk-refvgkzpumrwnpngrrojiiezfgdahtxqixmllzkxjnaxzewp",
 };
 
@@ -202,6 +202,8 @@ const state = {
   selectedCaseId: "",
   lastReportText: "",
   modelStatus: "checking",
+  dataReady: false,
+  dataLoadPromise: null,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -214,12 +216,8 @@ async function initApp() {
   bindStaticEvents();
   renderScenarios();
   setLoading("正在加载法规语料与案例数据");
-  await loadData();
-  prepareIndexes();
-  populateFilters();
-  renderStats();
-  renderSourceList();
-  renderCaseList();
+  state.dataLoadPromise = loadAndRenderData();
+  await state.dataLoadPromise;
   clearLoading();
   checkModelService();
   hydrateIcons();
@@ -264,12 +262,8 @@ function bindStaticEvents() {
   byId("source-search").addEventListener("input", () => renderSourceList());
   byId("refresh-data").addEventListener("click", async () => {
     setLoading("正在重新加载数据");
-    await loadData();
-    prepareIndexes();
-    populateFilters();
-    renderStats();
-    renderSourceList();
-    renderCaseList();
+    state.dataLoadPromise = loadAndRenderData();
+    await state.dataLoadPromise;
     clearLoading();
   });
 
@@ -297,20 +291,20 @@ async function checkModelService() {
     state.modelStatus = "offline";
     statusDot.className = "status-dot warning";
     statusText.textContent = "大模型未接入";
-    statusDetail.textContent = "当前仍可使用本地法规证据问答；填入 API Key 后将自动调用 DeepSeek V4 Flash。";
+    statusDetail.textContent = "当前仍可使用本地法规证据问答；填入 API Key 后将自动调用快速问答模型。";
     return;
   }
 
   state.modelStatus = "checking";
   statusDot.className = "status-dot checking";
-  statusText.textContent = "正在检查 DeepSeek V4 Flash";
+  statusText.textContent = "正在检查快速问答模型";
   statusDetail.textContent = "正在请求模型服务，确认在线问答是否可用。";
   try {
     await callModelHealthCheck();
     state.modelStatus = "online";
     statusDot.className = "status-dot online";
     statusText.textContent = "大模型服务正常";
-    statusDetail.textContent = "DeepSeek V4 Flash 已连通，法律问答将使用法规证据 + 在线模型生成回答。";
+    statusDetail.textContent = "快速问答模型已连通，法律问答将使用法规证据 + 在线模型生成回答。";
   } catch (error) {
     state.modelStatus = "error";
     statusDot.className = "status-dot warning";
@@ -328,6 +322,27 @@ async function loadData() {
   state.stats = stats;
   state.cases = cases;
   state.tasks = tasks;
+}
+
+async function loadAndRenderData() {
+  state.dataReady = false;
+  await loadData();
+  prepareIndexes();
+  populateFilters();
+  renderStats();
+  renderSourceList();
+  renderCaseList();
+  state.dataReady = true;
+}
+
+async function ensureDataReady() {
+  if (state.dataReady) return;
+  if (state.dataLoadPromise) {
+    await state.dataLoadPromise;
+  }
+  if (!state.dataReady || !state.corpus.length) {
+    throw new Error("法规数据还没有加载完成，请稍后再试。");
+  }
 }
 
 async function fetchJson(path) {
@@ -433,11 +448,20 @@ async function handleSearch() {
   button.querySelector("span").textContent = state.searchMode === "quick" ? "找法中" : "问答中";
 
   try {
+    if (!state.dataReady) {
+      setAnswerLoading("正在加载法规数据，请稍候");
+      await ensureDataReady();
+    }
     if (state.searchMode === "quick") {
       runQuickSearch(query);
     } else {
       await runDeepSearch(query);
     }
+  } catch (error) {
+    byId("answer-output").className = "answer-output";
+    byId("answer-output").innerHTML = `<h3>暂时无法完成</h3><p>${escapeHtml(error.message || error)}</p>`;
+    byId("result-count").textContent = "未完成";
+    showToast("操作未完成");
   } finally {
     button.disabled = false;
     button.querySelector("span").textContent = state.searchMode === "quick" ? "开始找法" : "开始问答";
