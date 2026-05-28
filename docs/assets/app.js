@@ -182,9 +182,8 @@ const SYSTEM_PROMPT = `你是低空经济合规法律问答助手，只回答低
 
 const HARD_CODED_API = {
   baseUrl: "https://api.siliconflow.cn/v1",
-  model: "deepseekv4pro",
-  // 在这里填入你的 OpenAI-compatible API Key。GitHub Pages 公开发布时，源码中的 Key 会被访问者看到。
-  apiKey: "",
+  model: "deepseek-ai/DeepSeek-V4-Flash",
+  apiKey: "sk-refvgkzpumrwnpngrrojiiezfgdahtxqixmllzkxjnaxzewp",
 };
 
 const state = {
@@ -298,20 +297,20 @@ async function checkModelService() {
     state.modelStatus = "offline";
     statusDot.className = "status-dot warning";
     statusText.textContent = "大模型未接入";
-    statusDetail.textContent = "当前仍可使用本地法规证据问答；填入 API Key 后将自动调用 deepseekv4pro。";
+    statusDetail.textContent = "当前仍可使用本地法规证据问答；填入 API Key 后将自动调用 DeepSeek V4 Flash。";
     return;
   }
 
   state.modelStatus = "checking";
   statusDot.className = "status-dot checking";
-  statusText.textContent = "正在检查 deepseekv4pro";
+  statusText.textContent = "正在检查 DeepSeek V4 Flash";
   statusDetail.textContent = "正在请求模型服务，确认在线问答是否可用。";
   try {
     await callModelHealthCheck();
     state.modelStatus = "online";
     statusDot.className = "status-dot online";
     statusText.textContent = "大模型服务正常";
-    statusDetail.textContent = "deepseekv4pro 已连通，法律问答将使用法规证据 + 在线模型生成回答。";
+    statusDetail.textContent = "DeepSeek V4 Flash 已连通，法律问答将使用法规证据 + 在线模型生成回答。";
   } catch (error) {
     state.modelStatus = "error";
     statusDot.className = "status-dot warning";
@@ -463,7 +462,7 @@ function runQuickSearch(query) {
 }
 
 async function runDeepSearch(query) {
-  setAnswerLoading("正在识别场景槽位、路由证据并构建法源矩阵");
+  setAnswerLoading("正在检索法规证据并生成法律回答");
   const trace = traceQuestion(query);
   const rawHits = retrieveTrace(trace, 24, 18);
   const cells = buildEvidenceMatrix(rawHits, trace);
@@ -1324,7 +1323,7 @@ function buildPlainReport(question, answer, hits, trace, resolve) {
     .map((hit, index) => `${index + 1}. [${hit.doc.article_id}] ${hit.doc.title_zh} ${hit.doc.article_no}`)
     .join("\n");
   const warnings = resolve.warnings.length ? resolve.warnings.map((item) => `- ${item}`).join("\n") : "- 未发现明显规则边界提醒";
-  return `NormCase-TARRAG 低空经济法律问答报告
+  return `低空经济法律问答报告
 
 问题：
 ${question}
@@ -1636,7 +1635,7 @@ function switchView(view) {
     library: "法规库",
     cases: "案例研判",
   };
-  byId("view-title").textContent = titles[view] || "NormCase-TARRAG";
+  byId("view-title").textContent = titles[view] || "低空经济法律合规助手";
 }
 
 function renderMarkdown(text) {
@@ -1708,14 +1707,28 @@ function badge(text, kind = "") {
 
 function setLoading(message) {
   byId("answer-output").className = "answer-output";
-  byId("answer-output").innerHTML = `<p>${escapeHtml(message)}</p><div class="loading-bar"><span></span></div>`;
+  byId("answer-output").innerHTML = renderLoading(message);
 }
 
 function setAnswerLoading(message) {
   byId("answer-output").className = "answer-output";
-  byId("answer-output").innerHTML = `<p>${escapeHtml(message)}</p><div class="loading-bar"><span></span></div>`;
+  byId("answer-output").innerHTML = renderLoading(message);
   byId("result-list").innerHTML = "";
   byId("result-count").textContent = "处理中";
+}
+
+function renderLoading(message) {
+  return `
+    <div class="loading-state" aria-live="polite">
+      <div class="loading-spinner" aria-hidden="true"></div>
+      <p>${escapeHtml(message)}</p>
+      <div class="loading-steps" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  `;
 }
 
 function clearLoading() {
